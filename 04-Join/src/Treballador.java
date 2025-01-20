@@ -4,9 +4,9 @@ public class Treballador extends Thread {
 
     // Variables
     private final float nou_anual_brut; // "nou_anual_brut" que no varia amb els anys
-    private final int edat_inici_treball; //edat inicial que no canvia
-    private final int edat_fi_treball; //edat final que no canvia
-    private int edat_actual; // Inicialitzat a 0
+    private final int edat_inici_treball; // edat inicial que no canvia
+    private final int edat_fi_treball; // edat final que no canvia
+    private int edat_actual; // Inicialitzat a edat_inici_treball
     private float cobrat; // Acumula el total cobrat, inicialitzat a 0.0f
     private final Random rnd; // Generador de nombres aleatoris
 
@@ -16,7 +16,7 @@ public class Treballador extends Thread {
         this.nou_anual_brut = nou_anual_brut;
         this.edat_inici_treball = edat_inici_treball;
         this.edat_fi_treball = edat_fi_treball;
-        this.edat_actual = 0;
+        this.edat_actual = edat_inici_treball; // Inicialitzem a edat_inici_treball
         this.cobrat = 0.0f;
         this.rnd = new Random();
     }
@@ -37,13 +37,16 @@ public class Treballador extends Thread {
     @Override
     public void run() {
         // Simula des de l'edat d'inici fins a l'edat de finalització
-        for (int edat = edat_inici_treball; edat <= edat_fi_treball; edat++) {
-            edat_actual = edat; // Actualitza l'edat actual
+        int mesosTotals = (edat_fi_treball - edat_inici_treball) * 12;
+        for (int mes = 0; mes < mesosTotals; mes++) {
             cobra(); // Cobra el sou mensual
             pagaImpostos(); // Paga els impostos
+            if ((mes + 1) % 12 == 0) { // Incrementa l'edat cada 12 mesos
+                edat_actual++;
+            }
             try {
                 // Simula el pas del temps amb una pausa
-                Thread.sleep(rnd.nextInt(100)); // Entre 0 i 100 ms de pausa
+                Thread.sleep(100 + rnd.nextInt(101)); // Entre 100 i 200 ms de pausa
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
