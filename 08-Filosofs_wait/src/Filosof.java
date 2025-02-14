@@ -10,23 +10,39 @@ public class Filosof extends Thread {
         this.id = numComensal;
         this.forquillaEsquerra = esquerra;
         this.forquillaDreta = dreta;
-        this.gana = 0; // Inicialment, el filòsof no té gana
+        this.gana = 0; // Comença en 0
     }
 
     // Mètode per agafar la forquilla esquerra
     private void agafarForquillaEsquerra() throws InterruptedException {
-        forquillaEsquerra.agafar(id);
+        synchronized (forquillaEsquerra) {
+            while (forquillaEsquerra.getPropietari() != -1) {
+                forquillaEsquerra.wait(); // Espera si està ocupada
+            }
+            forquillaEsquerra.agafar(id);
+        }
     }
 
     // Mètode per agafar la forquilla dreta
     private void agafarForquillaDreta() throws InterruptedException {
-        forquillaDreta.agafar(id);
+        synchronized (forquillaDreta) {
+            while (forquillaDreta.getPropietari() != -1) {
+                forquillaDreta.wait(); // Espera si està ocupada
+            }
+            forquillaDreta.agafar(id);
+        }
     }
 
     // Mètode per deixar les forquilles
     private void deixarForquilles() {
-        forquillaEsquerra.deixar(id);
-        forquillaDreta.deixar(id);
+        synchronized (forquillaEsquerra) {
+            forquillaEsquerra.deixar(id);
+            forquillaEsquerra.notifyAll(); // Notifica altres fils
+        }
+        synchronized (forquillaDreta) {
+            forquillaDreta.deixar(id);
+            forquillaDreta.notifyAll(); // Notifica altres fils
+        }
     }
 
     // Mètode per agafar les forquilles en ordre i gestionar espera
@@ -34,11 +50,16 @@ public class Filosof extends Thread {
         while (true) {
             agafarForquillaEsquerra(); // Intenta agafar la forquilla esquerra
             Thread.sleep(50); // Breu pausa per evitar bloquejos
-            if (forquillaDreta.getPropietari() == -1) {
-                agafarForquillaDreta(); // Intenta agafar la dreta
-                return; // Si aconsegueix totes dues, surt del bucle
-            } else {
-                forquillaEsquerra.deixar(id); // Allibera l'esquerra si la dreta està ocupada
+            synchronized (forquillaDreta) {
+                if (forquillaDreta.getPropietari() == -1) {
+                    agafarForquillaDreta(); // Intenta agafar la dreta
+                    return; // Si aconsegueix totes dues, surt del bucle
+                } else {
+                    synchronized (forquillaEsquerra) {
+                        forquillaEsquerra.deixar(id); // Allibera l'esquerra si la dreta està ocupada
+                        forquillaEsquerra.notifyAll();
+                    }
+                }
             }
             esperar(); // Espera abans de reintentar
         }
@@ -53,7 +74,10 @@ public class Filosof extends Thread {
 
     // Mètode perquè el filòsof pensi
     private void pensar() throws InterruptedException {
-        System.out.println("Filòsof " + getName() + " (" + id + ") pensant");
+        if (gana > 5) {
+            gana--; // Redueix la gana quan pensa
+        }
+        System.out.println("Filòsof " + getName() + " (" + id + ") pensant. Nivell de gana: " + gana);
         Thread.sleep((long) (1000 + Math.random() * 1000)); // Pensa entre 1s i 2s
     }
 
@@ -67,7 +91,7 @@ public class Filosof extends Thread {
     public void run() {
         try {
             while (true) {
-                pensar(); // El filòsof pensa
+                pensar(); // El filòsof pensa (i baixa la gana si és major que 5)
                 agafarForquilles(); // Intenta agafar les forquilles
                 menjar(); // Menja
                 deixarForquilles(); // Deixa les forquilles

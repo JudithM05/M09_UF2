@@ -23,7 +23,7 @@ public class Forquilla {
     }
 
     // Mètode per agafar la forquilla
-    public void agafar(int idFilòsof) throws InterruptedException {
+    public synchronized void agafar(int idFilòsof) throws InterruptedException {
         while (propietari != LLIURE) {
             wait(); // Espera si la forquilla està ocupada
         }
@@ -32,7 +32,7 @@ public class Forquilla {
     }
 
     // Mètode per deixar la forquilla
-    public void deixar(int idFilòsof) {
+    public synchronized void deixar(int idFilòsof) {
         if (propietari == idFilòsof) {
             propietari = LLIURE; // Allibera la forquilla
             System.out.println("Forquilla " + numero + " deixada pel filòsof " + idFilòsof);
