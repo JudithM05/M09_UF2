@@ -74,9 +74,6 @@ public class Filosof extends Thread {
 
     // Mètode perquè el filòsof pensi
     private void pensar() throws InterruptedException {
-        if (gana > 5) {
-            gana--; // Redueix la gana quan pensa
-        }
         System.out.println("Filòsof " + getName() + " (" + id + ") pensant. Nivell de gana: " + gana);
         Thread.sleep((long) (1000 + Math.random() * 1000)); // Pensa entre 1s i 2s
     }
